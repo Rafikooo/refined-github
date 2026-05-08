@@ -163,6 +163,7 @@ import './features/no-duplicate-list-update-time.js';
 import './features/view-last-pr-deployment.js';
 import './features/avoid-accidental-submissions.js';
 import './features/quick-review-comment-deletion.js';
+import './features/quick-review-comment-edit.js';
 import './features/no-unnecessary-split-diff-view.js';
 import './features/list-prs-for-branch.js';
 import './features/select-notifications.js';
