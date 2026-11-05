@@ -10,6 +10,23 @@ GitHub Enterprise is also supported: [How to enable it](https://fregante.github.
 
 *The GITHUB and REFINED GITHUB trademarks are owned by GitHub, Inc. and used under license.*
 
+## This fork
+
+Branch `quick-review-comment-edit` adds `quick-review-comment-edit` and `pr-diff-sections` (lines changed per section, e.g. src / tests / docs, next to the PR diffstat). Chrome and Edge only.
+
+```sh
+git clone -b quick-review-comment-edit https://github.com/Rafikooo/refined-github.git
+cd refined-github
+npm ci
+npm run build:bundle
+```
+
+1. Open `chrome://extensions` (or `edge://extensions`) and enable **Developer mode**
+2. **Load unpacked** and pick the `distribution` folder
+3. Disable the Web Store version of Refined GitHub, if installed
+
+To update: `git pull && npm run build:bundle`, then hit reload on the extension card.
+
 ## Install
 
 [link-chrome]: https://chrome.google.com/webstore/detail/refined-github/hlepfoohegkhhmjieoechaddaejaokhf 'Version published on Chrome Web Store'
