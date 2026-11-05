@@ -186,6 +186,22 @@ function keepApplying(
 	});
 }
 
+// Goes through the file tree link, so GitHub handles the sticky header offset and virtualized files
+function scrollToFirstFile(digests: Set<string>): void {
+	const first = $$optional('div[class*="diffEntry"] > [id^="diff-"]')
+		.find(anchor => digests.has(anchor.id.replace('diff-', '')));
+	if (!first) {
+		return;
+	}
+
+	const treeLink = $optional(`#pr-file-tree a[href="#${first.id}"]`);
+	if (treeLink) {
+		treeLink.click();
+	} else {
+		first.scrollIntoView({block: 'start'});
+	}
+}
+
 async function applyFilter(section: Section | undefined): Promise<void> {
 	// Undefined while no section filter is active
 	activeFilter?.controller.abort();
@@ -216,6 +232,13 @@ async function applyFilter(section: Section | undefined): Promise<void> {
 		folder => paths.some(path => path.startsWith(`${folder}/`)),
 		controller.signal,
 	);
+
+	// Wait for the other files to collapse, so the target does not move after the jump
+	setTimeout(() => {
+		if (!controller.signal.aborted) {
+			scrollToFirstFile(digests);
+		}
+	}, 400);
 }
 
 async function toggleFilter(section: Section): Promise<void> {
