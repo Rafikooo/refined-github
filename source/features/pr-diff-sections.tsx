@@ -13,15 +13,16 @@ type Totals = {files: number; additions: number; deletions: number};
 const sectionOrder: Section[] = ['src', 'frontend', 'templates', 'config', 'translations', 'docs', 'tests', 'migrations', 'generated'];
 
 const heuristics: Array<[Section, RegExp]> = [
-	['generated', /(^|\/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|composer\.lock|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|go\.sum)$/],
-	['generated', /\.min\.(js|css)$|(^|\/)(vendor|dist|generated)\//],
-	['tests', /(^|\/)(tests?|__tests__|spec|specs|e2e|fixtures?|__snapshots__)\/|\.(test|spec)\.[^/]+$|Test\.php$|_test\.(go|py|rb)$|(^|\/)test_[^/]+\.py$/i],
-	['docs', /\.(md|mdx|rst|adoc)$|(^|\/)docs?\//i],
-	['migrations', /(^|\/)migrations?\//i],
-	['translations', /(^|\/)(translations|locales?|i18n|lang)\//i],
-	['templates', /(^|\/)templates\/|\.(twig|blade\.php|html\.erb|hbs)$/i],
-	['frontend', /(^|\/)(frontend|assets)\/|\.(vue|svelte|css|scss|less)$/i],
-	['config', /^\.github\/|(^|\/)\.[^/]+$|\.(ya?ml|json|toml|ini|neon|dist)$|(^|\/)(Dockerfile|Makefile|compose\.[^/]+)$/i],
+	['generated', /(?:^|\/)(?:package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|composer\.lock|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|go\.sum)$/],
+	['generated', /\.min\.(?:js|css)$|(?:^|\/)(?:vendor|dist|generated)\//],
+	['tests', /(?:^|\/)(?:tests?|__tests__|spec|specs|e2e|fixtures?|__snapshots__)\/|\.(?:test|spec)\.[^/]+$|_test\.(?:go|py|rb)$|(?:^|\/)test_[^/]+\.py$/i],
+	['tests', /[\da-z]Test\.php$/],
+	['docs', /\.(?:md|mdx|rst|adoc)$|(?:^|\/)docs?\//i],
+	['migrations', /(?:^|\/)migrations?\//i],
+	['translations', /(?:^|\/)(?:translations|locales?|i18n|lang)\//i],
+	['templates', /(?:^|\/)templates\/|\.(?:twig|blade\.php|html\.erb|hbs)$/i],
+	['frontend', /(?:^|\/)(?:frontend|assets)\/|\.(?:vue|svelte|css|scss|less)$/i],
+	['config', /^\.github\/|(?:^|\/)\.[^/]+$|\.(?:ya?ml|json|toml|ini|neon|dist)$|(?:^|\/)(?:dockerfile|makefile|compose\.[^/]+)$/i],
 ];
 
 function classify({path, isVendored}: DiffSummary): Section {
@@ -61,7 +62,7 @@ async function fetchSections(): Promise<Map<Section, Totals>> {
 const maxRowsPerColumn = 3;
 
 function getTable(sections: Map<Section, Totals>): HTMLElement | undefined {
-	const allLines = [...sections.values()].reduce((sum, {additions, deletions}) => sum + additions + deletions, 0) || 1;
+	const allLines = sections.values().reduce((sum, {additions, deletions}) => sum + additions + deletions, 0) || 1;
 	const changed = (section: Section): number => {
 		const totals = sections.get(section);
 		return totals ? totals.additions + totals.deletions : 0;
