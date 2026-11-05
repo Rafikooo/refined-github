@@ -2,31 +2,35 @@ import React from 'dom-chef';
 import * as pageDetect from 'github-url-detection';
 
 import features from '../feature-manager.js';
+import LoadingIcon from '../github-helpers/icon-loading.js';
 import {buildRepoUrl, getConversationNumber} from '../github-helpers/index.js';
 import observe from '../helpers/selector-observer.js';
 
-type Section = 'Code' | 'Tests' | 'Docs' | 'Config/CI' | 'Migrations' | 'Generated';
+type Section = 'src' | 'frontend' | 'templates' | 'config' | 'translations' | 'docs' | 'tests' | 'migrations' | 'generated';
 type DiffSummary = {path: string; linesAdded: number; linesDeleted: number; isVendored: boolean};
 type Totals = {files: number; additions: number; deletions: number};
 
-const sectionOrder: Section[] = ['Code', 'Tests', 'Docs', 'Config/CI', 'Migrations', 'Generated'];
+const sectionOrder: Section[] = ['src', 'frontend', 'templates', 'config', 'translations', 'docs', 'tests', 'migrations', 'generated'];
 
 const heuristics: Array<[Section, RegExp]> = [
-	['Generated', /(^|\/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|composer\.lock|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|go\.sum)$/],
-	['Generated', /\.min\.(js|css)$|(^|\/)(vendor|dist|generated)\//],
-	['Tests', /(^|\/)(tests?|__tests__|spec|specs|e2e|fixtures?|__snapshots__)\/|\.(test|spec)\.[^/]+$|Test\.php$|_test\.(go|py|rb)$|(^|\/)test_[^/]+\.py$/i],
-	['Docs', /\.(md|mdx|rst|adoc)$|(^|\/)docs?\//i],
-	['Migrations', /(^|\/)migrations?\//i],
-	['Config/CI', /^\.github\/|(^|\/)\.[^/]+$|\.(ya?ml|json|toml|ini|neon|dist)$|(^|\/)(Dockerfile|Makefile|compose\.[^/]+)$/i],
+	['generated', /(^|\/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|composer\.lock|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|go\.sum)$/],
+	['generated', /\.min\.(js|css)$|(^|\/)(vendor|dist|generated)\//],
+	['tests', /(^|\/)(tests?|__tests__|spec|specs|e2e|fixtures?|__snapshots__)\/|\.(test|spec)\.[^/]+$|Test\.php$|_test\.(go|py|rb)$|(^|\/)test_[^/]+\.py$/i],
+	['docs', /\.(md|mdx|rst|adoc)$|(^|\/)docs?\//i],
+	['migrations', /(^|\/)migrations?\//i],
+	['translations', /(^|\/)(translations|locales?|i18n|lang)\//i],
+	['templates', /(^|\/)templates\/|\.(twig|blade\.php|html\.erb|hbs)$/i],
+	['frontend', /(^|\/)(frontend|assets)\/|\.(vue|svelte|css|scss|less)$/i],
+	['config', /^\.github\/|(^|\/)\.[^/]+$|\.(ya?ml|json|toml|ini|neon|dist)$|(^|\/)(Dockerfile|Makefile|compose\.[^/]+)$/i],
 ];
 
 function classify({path, isVendored}: DiffSummary): Section {
 	if (isVendored) {
-		return 'Generated';
+		return 'generated';
 	}
 
 	// Undefined for plain source files
-	return heuristics.find(([, pattern]) => pattern.test(path))?.[0] ?? 'Code';
+	return heuristics.find(([, pattern]) => pattern.test(path))?.[0] ?? 'src';
 }
 
 // Same JSON the React "Files changed" tab loads, so it works with the session alone, no token
@@ -54,18 +58,30 @@ async function fetchSections(): Promise<Map<Section, Totals>> {
 	return sections;
 }
 
-const rowsPerColumn = 3;
+const maxRowsPerColumn = 3;
 
-function getTable(sections: Map<Section, Totals>): HTMLElement {
+function getTable(sections: Map<Section, Totals>): HTMLElement | undefined {
 	const allLines = [...sections.values()].reduce((sum, {additions, deletions}) => sum + additions + deletions, 0) || 1;
-	const present = sectionOrder.filter(section => sections.has(section));
+	const changed = (section: Section): number => {
+		const totals = sections.get(section);
+		return totals ? totals.additions + totals.deletions : 0;
+	};
+
+	const present = sectionOrder
+		.filter(section => changed(section) > 0)
+		.toSorted((a, b) => changed(b) - changed(a));
+	if (present.length === 0) {
+		return undefined;
+	}
+
 	const columns: Section[][] = [];
-	for (let index = 0; index < present.length; index += rowsPerColumn) {
-		columns.push(present.slice(index, index + rowsPerColumn));
+	const perColumn = Math.ceil(present.length / Math.ceil(present.length / maxRowsPerColumn));
+	for (let index = 0; index < present.length; index += perColumn) {
+		columns.push(present.slice(index, index + perColumn));
 	}
 
 	return (
-		<div className="rgh-pr-diff-sections d-flex ml-3 text-bold" style={{
+		<div className="rgh-pr-diff-sections d-flex flex-items-start ml-3 text-bold" style={{
 			fontSize: '10px', lineHeight: 1.1, alignSelf: 'center', marginTop: '-8px',
 		}}>
 			{columns.map((column, index) => (
@@ -76,7 +92,7 @@ function getTable(sections: Map<Section, Totals>): HTMLElement {
 							const share = Math.round(((additions + deletions) / allLines) * 100);
 							return (
 								<tr title={`${files} ${files === 1 ? 'file' : 'files'}, ${share}% of changed lines`}>
-									<td className="pr-2 color-fg-muted text-normal">{section.toLowerCase()}</td>
+									<td className="pr-2 color-fg-muted text-normal">{section}</td>
 									<td className="pr-1 fgColor-success text-right">+{additions}</td>
 									<td className="fgColor-danger text-right">−{deletions}</td>
 								</tr>
@@ -89,14 +105,37 @@ function getTable(sections: Map<Section, Totals>): HTMLElement {
 	);
 }
 
+const cache = new Map<string, Promise<Map<Section, Totals>>>();
+
 async function init(signal: AbortSignal): Promise<void> {
-	let sections: Promise<Map<Section, Totals>> | undefined;
 	observe([
 		'#diffstat',
 		'[class*="rightContentWrapper"] .d-flex.flex-items-center.gap-1:has(> [class*="fgColor-success"], > [class*="fgColor-danger"])',
 	], async diffstat => {
-		sections ??= fetchSections();
-		diffstat.after(getTable(await sections));
+		// GitHub swaps PRs without a page load, so the header may still hold the previous PR's table
+		for (const stale of diffstat.parentElement!.querySelectorAll('.rgh-pr-diff-sections')) {
+			stale.remove();
+		}
+
+		const pullRequestUrl = buildRepoUrl('pull', getConversationNumber()!);
+		if (!cache.has(pullRequestUrl)) {
+			cache.set(pullRequestUrl, fetchSections());
+		}
+
+		const spinner = <span className="rgh-pr-diff-sections ml-3 d-flex flex-items-center"><LoadingIcon /></span>;
+		diffstat.after(spinner);
+		try {
+			const table = getTable(await cache.get(pullRequestUrl)!);
+			if (table) {
+				spinner.replaceWith(table);
+			} else {
+				spinner.remove();
+			}
+		} catch (error) {
+			cache.delete(pullRequestUrl);
+			spinner.remove();
+			throw error;
+		}
 	}, {signal});
 }
 
