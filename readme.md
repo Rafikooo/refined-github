@@ -1,5 +1,21 @@
 # <img src="source/icon.png" width="45" align="left"> Refined GitHub
 
+> [!IMPORTANT]
+> **This is a fork.** It adds `pr-diff-sections` (lines changed per section like src / tests / docs, with a sidebar filter and viewed progress on the files tab) and `quick-review-comment-edit`. Not on the Web Store, so you build it and load it by hand. Chrome and Edge only.
+>
+> ```sh
+> git clone https://github.com/Rafikooo/refined-github.git
+> cd refined-github
+> npm ci
+> npm run build:bundle
+> ```
+>
+> 1. Open `chrome://extensions` (or `edge://extensions`) and turn on **Developer mode**
+> 2. Click **Load unpacked** and pick the `distribution` folder
+> 3. Disable the Web Store Refined GitHub, if you have it
+>
+> Update: `git pull && npm run build:bundle`, then hit reload on the extension card.
+
 > Browser extension that simplifies the GitHub interface and adds useful features
 
 We use GitHub a lot and notice many annoyances we'd like to fix. So here be dragons.
@@ -9,23 +25,6 @@ Our hope is that GitHub will notice and implement some of these much-needed impr
 GitHub Enterprise is also supported: [How to enable it](https://fregante.github.io/webext-permission-toggle/?name=Refined%20GitHub&icon=https%3A%2F%2Fraw.githubusercontent.com%2Frefined-github%2Frefined-github%2Fmain%2Fsource%2Ficon.png). <!-- icon.png renders best -->
 
 *The GITHUB and REFINED GITHUB trademarks are owned by GitHub, Inc. and used under license.*
-
-## This fork
-
-Adds `quick-review-comment-edit` and `pr-diff-sections` (lines changed per section, e.g. src / tests / docs, with a sidebar filter and viewed progress on the files tab). Chrome and Edge only.
-
-```sh
-git clone https://github.com/Rafikooo/refined-github.git
-cd refined-github
-npm ci
-npm run build:bundle
-```
-
-1. Open `chrome://extensions` (or `edge://extensions`) and enable **Developer mode**
-2. **Load unpacked** and pick the `distribution` folder
-3. Disable the Web Store version of Refined GitHub, if installed
-
-To update: `git pull && npm run build:bundle`, then hit reload on the extension card.
 
 ## Install
 
