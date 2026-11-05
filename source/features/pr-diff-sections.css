@@ -1,0 +1,81 @@
+.rgh-pr-diff-sections-header {
+	align-self: center;
+	margin-top: -8px;
+	font-size: 10px;
+	line-height: 1.1;
+}
+
+.rgh-pr-diff-sections-header tr {
+	cursor: pointer;
+}
+
+.rgh-pr-diff-sections-header tr:hover td:first-child {
+	color: var(--fgColor-accent) !important;
+	text-decoration: underline;
+}
+
+.rgh-pr-diff-sections-header tr.rgh-pr-diff-sections-active td:first-child {
+	color: var(--fgColor-accent) !important;
+	font-weight: var(--base-text-weight-semibold);
+}
+
+.rgh-pr-diff-sections-header-skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	align-self: center;
+	margin-top: -8px;
+	margin-left: 16px;
+}
+
+.rgh-pr-diff-sections-sidebar-skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 96px;
+	padding: 10px 24px 10px 8px;
+	margin-bottom: 8px;
+	border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+@keyframes rgh-pr-diff-sections-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.rgh-pr-diff-sections-fade {
+		animation: rgh-pr-diff-sections-fade-in 250ms ease-out;
+	}
+}
+
+.rgh-pr-diff-sections-sidebar summary {
+	cursor: pointer;
+	list-style: none;
+}
+
+.rgh-pr-diff-sections-sidebar summary:hover {
+	background-color: var(--control-transparent-bgColor-hover);
+}
+
+.rgh-pr-diff-sections-chevron {
+	transition: transform 120ms ease-out;
+}
+
+.rgh-pr-diff-sections-sidebar:not([open]) .rgh-pr-diff-sections-chevron {
+	transform: rotate(-90deg);
+}
+
+.rgh-pr-diff-sections-complete .ActionListItem-label {
+	color: var(--fgColor-muted);
+}
+
+.rgh-pr-diff-sections-numbers,
+.rgh-pr-diff-sections-header td {
+	font-variant-numeric: tabular-nums;
+}
+
+.rgh-pr-diff-sections-numbers > span {
+	display: inline-block;
+}
