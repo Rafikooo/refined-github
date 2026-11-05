@@ -341,18 +341,21 @@ function getSidebarList(sections: Map<Section, Totals>): HTMLElement | undefined
 const ringLength = 2 * Math.PI * 6;
 
 function getProgressRing(fraction: number): SVGElement {
+	// Dom-chef keeps camelCase props as attribute names, which SVG ignores, so strokes go through `style`
 	return <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-			<circle cx="8" cy="8" r="6" fill="none" strokeWidth="2" stroke="var(--borderColor-default)" />
+			<circle cx="8" cy="8" r="6" fill="none" style={{stroke: 'var(--borderColor-default)', strokeWidth: 2}} />
 			<circle
 				cx="8"
 				cy="8"
 				r="6"
 				fill="none"
-				strokeWidth="2"
-				stroke="var(--fgColor-done)"
-				strokeDasharray={String(ringLength)}
-				strokeDashoffset={String(ringLength * (1 - fraction))}
 				transform="rotate(-90 8 8)"
+				style={{
+					stroke: 'var(--fgColor-done)',
+					strokeWidth: 2,
+					strokeDasharray: ringLength,
+					strokeDashoffset: ringLength * (1 - fraction),
+				}}
 			/>
 		</svg>;
 }
