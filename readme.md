@@ -12,10 +12,10 @@ GitHub Enterprise is also supported: [How to enable it](https://fregante.github.
 
 ## This fork
 
-Branch `quick-review-comment-edit` adds `quick-review-comment-edit` and `pr-diff-sections` (lines changed per section, e.g. src / tests / docs, next to the PR diffstat). Chrome and Edge only.
+Adds `quick-review-comment-edit` and `pr-diff-sections` (lines changed per section, e.g. src / tests / docs, with a sidebar filter and viewed progress on the files tab). Chrome and Edge only.
 
 ```sh
-git clone -b quick-review-comment-edit https://github.com/Rafikooo/refined-github.git
+git clone https://github.com/Rafikooo/refined-github.git
 cd refined-github
 npm ci
 npm run build:bundle
